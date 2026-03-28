@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/techwolf12/qrkey/pkg/helpers"
+	"github.com/jftuga/qrkey/pkg/helpers"
 
 	"crypto/sha256"
 	"encoding/base64"
@@ -95,7 +95,7 @@ func generateQR(cmd *cobra.Command, args []string) {
 		pdf.SetFont("Arial", "B", 16)
 		pdf.CellFormat(0, 10, fmt.Sprintf("File: %s", filepath.Base(inputFile)), "", 1, "C", false, 0, "")
 		pdf.SetFont("Arial", "", 12)
-		pdf.CellFormat(0, 10, fmt.Sprintf("Page %d / %d, made with https://github.com/techwolf12/qrkey", page+1, totalPages), "", 1, "C", false, 0, "")
+		pdf.CellFormat(0, 10, fmt.Sprintf("Page %d / %d, made with https://github.com/jftuga/qrkey", page+1, totalPages), "", 1, "C", false, 0, "")
 
 		// QR grid
 		for i := 0; i < perPage; i++ {
