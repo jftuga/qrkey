@@ -49,14 +49,14 @@ func recoverFromQR(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("Filename: %s\nSHA256: %s\nQR codes: %d\n", meta.Filename, meta.SHA256, meta.QRCount)
 
-	for len(lines) < meta.QRCount {
-		fmt.Printf("Enter QR code %d/%d: ", len(lines)+1, meta.QRCount)
+	for len(lines) < meta.QRCount+1 {
+		fmt.Printf("Enter data QR code %d/%d: ", len(lines), meta.QRCount)
 		reader := bufio.NewReader(os.Stdin)
 		l, _ := reader.ReadString('\n')
 		lines = append(lines, strings.TrimSpace(l))
 	}
 
-	b64 := strings.Join(lines[1:meta.QRCount], "")
+	b64 := strings.Join(lines[1:meta.QRCount+1], "")
 
 	data, err := base64.StdEncoding.DecodeString(b64)
 	if err != nil {
