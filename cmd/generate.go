@@ -16,10 +16,11 @@ import (
 )
 
 const (
-	qrChunkSize = 800 // bytes per QR code (safe for QR version 10, error correction M)
-	qrSize      = 100 // px, size of each QR code in the PDF
-	gridCols    = 4   // QR codes per row
-	gridRows    = 5   // QR codes per column
+	qrChunkSize = 400 // bytes per QR code (safe for QR version 13, error correction H)
+	qrSize      = 1024 // px, size of each QR code in the PDF
+	gridCols    = 1   // QR codes per row
+	gridRows    = 3   // QR codes per column
+	qrSpacing   = 10.0 // mm spacing between QR codes
 )
 
 func generateQR(cmd *cobra.Command, args []string) {
@@ -43,7 +44,7 @@ func generateQR(cmd *cobra.Command, args []string) {
 	hashStr := fmt.Sprintf("%x", hash[:])
 
 	chunks := helpers.SplitString(b64, qrChunkSize)
-	qrCount := len(chunks) + 1 // +1 for metadata QR
+	qrCount := len(chunks) // number of data QR codes (excludes metadata QR)
 
 	meta := Metadata{
 		Filename: filepath.Base(inputFile),
@@ -51,16 +52,17 @@ func generateQR(cmd *cobra.Command, args []string) {
 		QRCount:  qrCount,
 	}
 	metaBytes, _ := json.Marshal(meta)
-	metaQR, err := qrcode.New(string(metaBytes), qrcode.Medium)
+	metaQR, err := qrcode.New(string(metaBytes), qrcode.High)
 	if err != nil {
 		panic(err)
 	}
 
-	qrCodes := make([][]byte, 0, qrCount)
+	totalQRCodes := qrCount + 1 // data QRs + metadata QR
+	qrCodes := make([][]byte, 0, totalQRCodes)
 	metaPNG, _ := metaQR.PNG(qrSize)
 	qrCodes = append(qrCodes, metaPNG)
 	for _, chunk := range chunks {
-		qr, err := qrcode.New(chunk, qrcode.Medium)
+		qr, err := qrcode.New(chunk, qrcode.High)
 		if err != nil {
 			panic(err)
 		}
@@ -69,17 +71,23 @@ func generateQR(cmd *cobra.Command, args []string) {
 	}
 
 	// PDF
-	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf := gofpdf.New("P", "mm", "Letter", "")
 	pageW, pageH := pdf.GetPageSize()
 	margin := 10.0
 	usableW := pageW - 2*margin
 	usableH := pageH - 2*margin - 20 // 20mm for title
 
-	cellW := usableW / float64(gridCols)
-	cellH := usableH / float64(gridRows)
+	// Size QR codes to fit gridRows per page, keeping them square
+	qrH := (usableH - float64(gridRows-1)*qrSpacing) / float64(gridRows)
+	qrW := qrH // keep square
+	if qrW > usableW {
+		qrW = usableW
+		qrH = qrW
+	}
+	cellH := qrH + qrSpacing
 
 	perPage := gridCols * gridRows
-	totalPages := int(math.Ceil(float64(qrCount) / float64(perPage)))
+	totalPages := int(math.Ceil(float64(totalQRCodes) / float64(perPage)))
 
 	for page := 0; page < totalPages; page++ {
 		pdf.AddPage()
@@ -95,8 +103,11 @@ func generateQR(cmd *cobra.Command, args []string) {
 			if idx >= len(qrCodes) {
 				break
 			}
-			x := margin + float64(i%gridCols)*cellW
-			y := margin + 20 + float64(i/gridCols)*cellH
+			col := i % gridCols
+			row := i / gridCols
+			xOffset := (usableW - qrW) / 2 // center horizontally
+			x := margin + xOffset + float64(col)*(qrW+qrSpacing)
+			y := margin + 20 + float64(row)*cellH
 
 			// Write QR image
 			imgOpt := gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: false}
@@ -106,7 +117,7 @@ func generateQR(cmd *cobra.Command, args []string) {
 			if err != nil {
 				panic(err)
 			}
-			pdf.ImageOptions(tmpFile, x, y, cellW, cellH, false, imgOpt, 0, "")
+			pdf.ImageOptions(tmpFile, x, y, qrW, qrH, false, imgOpt, 0, "")
 			err = os.Remove(tmpFile)
 			if err != nil {
 				panic(err)
