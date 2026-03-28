@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/techwolf12/qrkey/pkg/helpers"
+	"github.com/jftuga/qrkey/pkg/helpers"
 
 	"github.com/spf13/cobra"
 

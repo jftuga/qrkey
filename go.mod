@@ -1,4 +1,4 @@
-module github.com/techwolf12/qrkey
+module github.com/jftuga/qrkey
 
 go 1.24
 

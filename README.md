@@ -14,7 +14,7 @@ This is a fork of [Techwolf12/qrkey](https://github.com/Techwolf12/qrkey) with i
 
 # Original QRKey README
 
-![QR code example](https://github.com/techwolf12/qrkey/raw/main/docs/testpdf.png "QR example")
+![QR code example](https://github.com/jftuga/qrkey/raw/main/docs/testpdf.png "QR example")
 
 `qrkey` is a command-line tool for generating and recovering QR codes from files for offline private key backup.
 It converts files into printable QR codes that can be scanned back later to recover the original data.
@@ -26,20 +26,7 @@ Large files are automatically split across multiple QR codes, with metadata for 
 
 ## Installation
 
-macOS users can install `qrkey` using Homebrew Tap:
-
-```bash
-brew tap techwolf12/tap
-brew install techwolf12/tap/qrkey
-```
-
-For Docker users, you can use the Docker image:
-
-```bash
-docker run -v "$(pwd)":/mnt ghcr.io/techwolf12/qrkey:latest generate --in /mnt/testfile.txt --out /mnt/test.pdf
-```
-
-For other systems, see the [releases page](https://github.com/Techwolf12/qrkey/releases/).
+Refer to the original [Installation Instructions](https://github.com/Techwolf12/qrkey?tab=readme-ov-file#installation)
 
 ## Usage
 To generate a QR code from a file, use the following command:
